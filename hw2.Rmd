@@ -12,11 +12,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Exercise 1
 
+Data was tab separated. Replaced then ? with NA. Cleaned the spaces just in case.
+
+```{r}
+library(readr)
+adult <- read_delim("adult.csv", "\t", escape_double = FALSE, trim_ws = TRUE)
+
+adult[adult == "?"] <- NA
+
+adult[] <- lapply(adult, gsub, pattern = " ", replacement = "", fixed = TRUE)
+```
+
 32561 rows and 12 columns. All the columns are treated as character type. Must convert some to numeric values.
 Got help from : https://stackoverflow.com/questions/22772279/converting-multiple-columns-from-character-to-numeric-format-in-r
 
 ```{r}
-tabcols <- names(adult)
+cols <- names(adult)
 cols
 cols.char <- c("workclass","education","occupation","native.country","male","female")
 cols.char
@@ -28,41 +39,64 @@ adult2 <- cbind(adult.char, adult.num)
 adult <-adult2
 ```
 
-
-Data was tab separated. Replaced then ? with NA. Cleaned the spaces just in case.
-
-```{r}
-adult <- read_delim("~/Data Mining/HW2/adult.csv", 
-+     "\t", escape_double = FALSE, trim_ws = TRUE)
-
-adult[adult == "?"] <- NA
-
-adult[] <- lapply(adult, gsub, pattern = " ", replacement = "", fixed = TRUE)
-```
-
 *Age* column
 Theres -57 value in the Age column and another with 320. Replaced them with NA. 2 rows affected
 ```{r}
 adult$age[adult$age < 0] <- NA
 adult$age[adult$age > 129] <- NA
+```
+Values: 17-90
+RATIO
+NA's   :99 
 
+*Worklass* is nominal. column replaced privat with Private. 10 rows affected.
+```{r}
+ adult$workclass[adult$workclass=="privat"] = "Private"
 ```
 
-*Worklass* column replaced privat with Private. 10 rows affected.
+```{r}
+unique(adult[["workclass"]])
+barplot(prop.table(table(adult[["workclass"]])))
+```
 
- adult[] <- lapply(adult, gsub, pattern = "privat", replacement = "Private", fixed = TRUE)
- 
-*native.country* renamed to country
+Values 
+*native.country* nominal, renamed to country, corrected United-States missspelling. 882 + 891 rows affected.
 ```{r}
  names(adult)[names(adult) == 'native.country'] <- 'country'
- data$country[data$country=="Unitedstates"] = "United-States"
  adult$country[adult$country=="Unitedstates"] = "United-States"
+adult$country[adult$country=="UnitedStates"] = "United-States"
 ```
+*Education* ordinal.
+```{r}
+barplot(prop.table(table(adult[["education"]])))
+```
+*capital-gain* ratio
+There seems to be a cut-off at 99999.
+```{r}
+library(ggplot2)
+o<-subset(adult, adult$capital.gain > 0)
+ o$capital.gain <- as.numeric(o$capital.gain)
+ ggplot(o, aes(o$capital.gain)) + geom_histogram(binwidth=500)
+```
+*capital-loss* ratio
 
-
+```{r}
+o <- subset(adult, adult$capital.loss > 0)
+o$capital.loss <- as.numeric(o$capital.loss)
+ggplot(o, aes(o$capital.loss)) + geom_histogram(binwidth=100)
+```
+From 0-4000
+*jobsatiscation* ratio
+values 0-15
+```{r}
+hist(adult$jobsatisfaction)
+```
 # Exercise 2
 a)
+
 ```{r}
+library(tidyr)
+library(dplyr)
  res <- adult %>%
           group_by(education, occupation) %>%
           summarise(avg_salary = mean(salaries, na.rm=TRUE)) %>%
@@ -75,31 +109,54 @@ b)
 ```
 c)
 ```{r}
-ggplot(data=res) + geom_tile(aes(x=res$education,y=res$occupation,fill=res$average_salary))
+ggplot(data=res) + geom_tile(aes(x=res$education,y=res$Occupation, fill=res$average_salary)) +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))  + labs(x="Education", colour="Average Salary", y="Occupation")
 ```
 
-d) 
+d) Not sure about the 
 ```{r}
-res$education <-  factor(res$education, levels=c("Preschool","1st-4th", "5th-6th", "7th-8th", "9th", "10th", "11th", "12th","Prof-school", "Some-college", "Bachelors", "HS-grad", "Masters", "Assoc-adm", "Assoc-voc", "Doctorate" ), ```
-ordered=TRUE)
-```
-e)
+res$education <- factor(res$education, levels=c("Preschool", "1st-4th", "5th-6th", "7th-8th", "9th", "10th", "11th", "12th", "HS-grad", "Prof-school", "Assoc-acdm", "Assoc-voc", "Some-college", "Bachelors", "Masters", "Doctorate"), ordered=TRUE)
 
+ggplot(data=res) + geom_tile(aes(x=res$education,y=res$Occupation, fill=res$average_salary)) +
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) + labs(x="Education", colour="Average Salary", y="Occupation")
+```
+
+
+Exercise 3
+a) user_id is nominal, the id of the user
+eval_set is nominal, evaluation set belonging. is data used to train, test or develop models
+order_number is nominal 
+order_dow is nominal time of the day. values from 0-6 though
+order_hour_of_the_day is ordinal the hour of the day
+days_since_last_order is interval - days since last order
+product_id is nominal
+add_to_car_order is ratio - in what order were the items added
+reordered is nominal - binary. is the product reordered - has this product been ordered before
+product_name is nominal 
+aisle_id is nominal
+department_id is nominal
+aisle and department are both nominal
+
+b)
 ```{r}
+library(readr)
 library(ggplot2)
-ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = Species)) + 
-         geom_point() + 
-         theme_bw()
+instacart_100k <- read_csv("~/RProjects/rhw/instacart_100k.csv")
+o <- instacart_100k
+
+o$order_hour_of_day <- as.numeric(o$order_hour_of_day)
+ggplot(o, aes(x=order_hour_of_day)) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(. ~ order_dow)
 ```
 
-# Exercise 3
-a) user_id is nominal
-eval_set is ordinal
+I tried to guess what day is nr 0 and i am guessing its sunday, because it has the most activity at night, when people dont need to go to work in the morning.
 
-ggplot(instacart, aes(x=order_hour_of_day)) +
-  geom_bar(stat="bin", bins=24) +
-  facet_grid(. ~ order_dow)
+```{r}
+p <- subset(o, o$add_to_cart_order < 6)
 
-
-# Exercise 4
-You may talk to your peers but make sure to submit unique solutions, otherwise it would be considered as **plagiarism**.
+ggplot(p, aes(x=add_to_cart_order)) +
+   geom_histogram(binwidth = 1) +
+   facet_grid(. ~ department)
+```
+A look at add to cart order (first five) by department. Some items are more likely to enter cart as the first item. 
