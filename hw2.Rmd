@@ -93,7 +93,13 @@ ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = Species)) +
 ```
 
 # Exercise 3
-Please provide comprehensive answers to all questions as we **actually** going to **read them all**.
+a) user_id is nominal
+eval_set is ordinal
+
+ggplot(instacart, aes(x=order_hour_of_day)) +
+  geom_bar(stat="bin", bins=24) +
+  facet_grid(. ~ order_dow)
+
 
 # Exercise 4
 You may talk to your peers but make sure to submit unique solutions, otherwise it would be considered as **plagiarism**.
