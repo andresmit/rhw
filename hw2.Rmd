@@ -1,0 +1,99 @@
+---
+title: "hw2"
+author: "andres matsin"
+date: "23 September 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Exercise 1
+
+32561 rows and 12 columns. All the columns are treated as character type. Must convert some to numeric values.
+Got help from : https://stackoverflow.com/questions/22772279/converting-multiple-columns-from-character-to-numeric-format-in-r
+
+```{r}
+tabcols <- names(adult)
+cols
+cols.char <- c("workclass","education","occupation","native.country","male","female")
+cols.char
+cols.num <- cols[!cols %in% cols.char]
+cols.num
+adult.char <- adult[cols.char]
+adult.num <- as.data.frame(lapply(adult[cols.num],as.numeric))
+adult2 <- cbind(adult.char, adult.num)
+adult <-adult2
+```
+
+
+Data was tab separated. Replaced then ? with NA. Cleaned the spaces just in case.
+
+```{r}
+adult <- read_delim("~/Data Mining/HW2/adult.csv", 
++     "\t", escape_double = FALSE, trim_ws = TRUE)
+
+adult[adult == "?"] <- NA
+
+adult[] <- lapply(adult, gsub, pattern = " ", replacement = "", fixed = TRUE)
+```
+
+*Age* column
+Theres -57 value in the Age column and another with 320. Replaced them with NA. 2 rows affected
+```{r}
+adult$age[adult$age < 0] <- NA
+adult$age[adult$age > 129] <- NA
+
+```
+
+*Worklass* column replaced privat with Private. 10 rows affected.
+
+ adult[] <- lapply(adult, gsub, pattern = "privat", replacement = "Private", fixed = TRUE)
+ 
+*native.country* renamed to country
+```{r}
+ names(adult)[names(adult) == 'native.country'] <- 'country'
+ data$country[data$country=="Unitedstates"] = "United-States"
+ adult$country[adult$country=="Unitedstates"] = "United-States"
+```
+
+
+# Exercise 2
+a)
+```{r}
+ res <- adult %>%
+          group_by(education, occupation) %>%
+          summarise(avg_salary = mean(salaries, na.rm=TRUE)) %>%
+      arrange(desc(avg_salary)) %>% spread(occupation, avg_salary)
+```
+b)
+
+```{r}
+ res <- res  %>% gather(colnames(res)[2:16], key="Occupation", value="average_salary")
+```
+c)
+```{r}
+ggplot(data=res) + geom_tile(aes(x=res$education,y=res$occupation,fill=res$average_salary))
+```
+
+d) 
+```{r}
+res$education <-  factor(res$education, levels=c("Preschool","1st-4th", "5th-6th", "7th-8th", "9th", "10th", "11th", "12th","Prof-school", "Some-college", "Bachelors", "HS-grad", "Masters", "Assoc-adm", "Assoc-voc", "Doctorate" ), ```
+ordered=TRUE)
+```
+e)
+
+```{r}
+library(ggplot2)
+ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = Species)) + 
+         geom_point() + 
+         theme_bw()
+```
+
+# Exercise 3
+Please provide comprehensive answers to all questions as we **actually** going to **read them all**.
+
+# Exercise 4
+You may talk to your peers but make sure to submit unique solutions, otherwise it would be considered as **plagiarism**.

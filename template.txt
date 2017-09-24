@@ -1,0 +1,27 @@
+---
+title: "My homework"
+subtitle: "Student's name"
+output:
+  pdf_document: default
+  pdf: default
+---
+
+# Exercise 1
+Write your answer for the first **exercise 1** here.
+
+# Exercise 2
+Here is an example of some **programming** exercise
+
+```{r}
+library(ggplot2)
+ggplot(data = iris, aes(x = Sepal.Length, y = Sepal.Width, colour = Species)) + 
+         geom_point() + 
+         theme_bw()
+```
+
+# Exercise 3
+Please provide comprehensive answers to all questions as we **actually** going to **read them all**.
+
+# Exercise 4
+You may talk to your peers but make sure to submit unique solutions, otherwise it would be considered as **plagiarism**.
+
